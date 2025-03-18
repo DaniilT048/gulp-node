@@ -1,5 +1,8 @@
 $background: blue;
+$textColor: white;
 
 body{
-  background: $background;
+  background-color: $background;
+  font-size: 45px;
+  color: $textColor;
 }
