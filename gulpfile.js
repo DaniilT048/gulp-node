@@ -18,7 +18,7 @@ const PATH = {
 const browserSync = require('browser-sync').create();
 const plugins = [
     mqpacker({ sort: sortCSSmq }),
-    cssnano({ preset: 'default' })
+    cssnano({ preset: ['default', { mergeLonghand: false }]})
 ]
 
 function scssMin() {
@@ -26,7 +26,8 @@ function scssMin() {
         .pipe(sass().on('error', sass.logError))
         .pipe(postcss(plugins))
         .pipe(rename({ suffix: '.min' }))
-        .pipe(dest(PATH.projectDest, { sourcemaps: true }));
+        .pipe(browserSync.stream())
+        .pipe(dest(PATH.projectDest, { sourcemaps: true }))
 }
 
 function parseHtml() {
