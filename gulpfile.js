@@ -2,9 +2,11 @@ const { src, dest, watch, task, series, parallel } = require("gulp");
 const sass = require("gulp-sass")(require("sass"));
 const browserSync = require("browser-sync").create();
 
+
 const PATH = {
     scssRootFile: 'src/**/*.scss',
     cssFolder: 'assets/',
+    htmlRootFile: './*.html',
 }
 
 function compileScss(){
@@ -32,7 +34,7 @@ function watchFiles() {
     syncInit();
     compileScss()
     watch(PATH.scssRootFile, series(compileScss));
+    watch(PATH.htmlRootFile, sync);
 }
 
-task('scss', series(compileScss));
 task('watch', watchFiles);
