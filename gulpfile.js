@@ -1,27 +1,44 @@
-const { src, dest, watch, task, series, parallel } = require("gulp");
+const { src, dest, watch, task, } = require("gulp");
 const sass = require("gulp-sass")(require("sass"));
-const browserSync = require("browser-sync").create();
-
+const cssnano = require('cssnano');
+const rename = require('gulp-rename');
+const postcss = require('gulp-postcss');
+const fileinclude = require('gulp-file-include');
+const mqpacker = require('css-mqpacker');
+const sortCSSmq = require('sort-css-media-queries');
 
 const PATH = {
-    scssRootFile: 'src/**/*.scss',
-    cssFolder: 'assets/',
-    htmlRootFile: './*.html',
+    scssSource: './src/**/*.scss',
+    htmlSource: './*.html',
+    htmlDest: './**/*.html',
+    projectDest: './assets',
+    jsSource: './src/**/*.js',
 }
 
-function compileScss(){
-    return src(PATH.scssRootFile)
+const browserSync = require('browser-sync').create();
+const plugins = [
+    mqpacker({ sort: sortCSSmq }),
+    cssnano({ preset: 'default' })
+]
+
+function scssMin() {
+    return src(PATH.scssSource, { sourcemaps: true })
         .pipe(sass().on('error', sass.logError))
-        .pipe(browserSync.stream())
-        .pipe(dest(PATH.cssFolder));
+        .pipe(postcss(plugins))
+        .pipe(rename({ suffix: '.min' }))
+        .pipe(dest(PATH.projectDest, { sourcemaps: true }));
 }
 
-
+function parseHtml() {
+    return src(PATH.htmlSource)
+        .pipe(fileinclude())
+        .pipe(dest(PATH.projectDest));
+}
 
 function syncInit() {
     browserSync.init({
         server: {
-            baseDir: './'
+            baseDir: PATH.projectDest
         }
     });
 }
@@ -32,9 +49,12 @@ async function sync() {
 
 function watchFiles() {
     syncInit();
-    compileScss()
-    watch(PATH.scssRootFile, series(compileScss));
-    watch(PATH.htmlRootFile, sync);
+    scssMin();
+    watch(PATH.scssSource, scssMin);
+    watch(PATH.scssSource, sync);
+    watch(PATH.htmlSource, parseHtml);
+    watch(PATH.htmlDest, sync);
+    watch(PATH.jsSource, sync);
 }
 
 task('watch', watchFiles);
